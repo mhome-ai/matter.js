@@ -82,6 +82,68 @@ Matter.js 中“标准 server”大体分三类：
 - 很多 behavior/server 文件是 codegen 产物（文件头可见 generated 标记）。
 - 来源是 Matter 规范模型 + CHIP/ZAP 数据整合后的生成流程，不是纯手写。
 
+### 4.1 `packages/node/src/behaviors/` 应该怎么用
+
+可以把这一层理解成“Cluster Server 能力库”：
+
+- `XxxBehavior.ts`：行为定义与类型接口（很多是 generated）。
+- `XxxServer.ts`：默认 server 实现（有的完整、有的只是骨架）。
+- `XxxClient.ts`：客户端访问封装（给 controller 或 peer 侧用）。
+
+你写设备示例时，通常有 3 种接入方式：
+
+1. 直接用设备定义（最省事）  
+   `new Endpoint(ColorTemperatureLightDevice, {...})`
+2. 覆写标准 server（做定制命令/状态逻辑）  
+   例如自定义 `OnOffServer`、`RvcRunModeServer`。
+3. 加自定义 cluster behavior（厂商扩展）  
+   用 `.with(CustomBehavior)` 把自定义行为挂到设备定义。
+
+### 4.2 哪些 cluster 适合先做“可证明”的实现
+
+建议按“复杂度递进”做 demo，便于给团队证明你在用标准 behaviors：
+
+- 第 1 层（基础交互）
+  - `on-off/OnOffServer.ts`
+  - `identify/IdentifyServer.ts`
+- 第 2 层（调光/颜色）
+  - `level-control/LevelControlServer.ts`
+  - `color-control/ColorControlServer.ts`
+- 第 3 层（测量/订阅）
+  - `temperature-measurement/TemperatureMeasurementServer.ts`
+  - `relative-humidity-measurement/RelativeHumidityMeasurementServer.ts`
+- 第 4 层（配网与生命周期）
+  - `general-commissioning/GeneralCommissioningServer.ts`
+  - `operational-credentials/OperationalCredentialsServer.ts`
+  - `network-commissioning/NetworkCommissioningServer.ts`
+
+### 4.3 快速判断“这个 server 能不能直接用”
+
+看 `XxxServer.ts` 文件：
+
+- 仅 `extends XxxBehavior` 且没有 override：通常是骨架，业务逻辑要你补。
+- 有大量命令/状态处理：通常可直接用于测试（如 `LevelControlServer`、`ColorControlServer`）。
+
+看对应 `devices/*.ts` 文件：
+
+- 若 `SupportedBehaviors(...)` 已包含该 server，创建 endpoint 时会自动带上。
+- 若注释提示“需手动启用 feature”，就要在 `.with(...)` 或 endpoint 初始化时明确给特性和必要属性。
+
+### 4.4 你可以新增的“证明用”示例矩阵
+
+建议在 `examples/abc` 继续加 4 个最小示例（每个都可被 controller 自动回归）：
+
+- `abc-onoff-basic`：验证配网 + toggle + 订阅回调。
+- `abc-dimmer-level`：验证 level 写入、step/move、边界值。
+- `abc-ct-color`：验证 color temperature 读写与 mode 切换。
+- `abc-sensor-subscribe`：验证传感器周期上报与断线重连后恢复订阅。
+
+每个示例都记录 3 类结果，作为“证明”材料：
+
+- 命令链路：invoke 是否成功（状态码、耗时）。
+- 状态链路：attribute read/write 是否符合预期。
+- 订阅链路：事件/属性增量是否连续、是否丢帧。
+
 ## 5. 你可直接复用的官方示例
 
 ### Controller 侧
