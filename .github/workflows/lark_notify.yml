@@ -1,0 +1,50 @@
+name: Notify Lark on Push
+
+on:
+  push:
+    branches:
+      - "*"
+  pull_request:
+    types:
+      [
+        opened,
+        synchronize,
+        reopened,
+        edited,
+        closed,
+        ready_for_review,
+        review_requested,
+      ]
+  pull_request_review:
+    types: [edited, dismissed, submitted]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Lark notification
+        if: ${{ secrets.LARK_BOT_HOOK != '' }}
+        env:
+          LARK_BOT_HOOK: ${{ secrets.LARK_BOT_HOOK }}
+        run: |
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            event="New push to repository"
+            target="${{ github.repository }} on branch: ${{ github.ref_name }}"
+            detail="Commit message: ${{ github.event.head_commit.message }}\nView Commit: ${{ github.event.head_commit.url }}"
+          elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            event="Pull request to repository"
+            target="${{ github.repository }}"
+            detail="${{ github.event.pull_request.title }}\nView PR: ${{ github.event.pull_request.html_url }}"
+          elif [[ "${{ github.event_name }}" == "pull_request_review" ]]; then
+            event="PR review status changed"
+            target="${{ github.repository }}"
+            detail="${{ github.event.pull_request.title }}\nView PR: ${{ github.event.pull_request.html_url }}"
+          fi
+
+          curl -X POST -H "Content-Type: application/json" \
+            -d "{
+              \"msg_type\": \"text\",
+              \"content\": {
+                \"text\": \"${event}: ${target} by: ${{ github.actor }}.\n\n${detail}\"
+              }
+            }" "${LARK_BOT_HOOK}"
