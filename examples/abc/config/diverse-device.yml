@@ -1,0 +1,39 @@
+node:
+  uniqueId: "diverse-node-1"
+  port: 5540
+  passcode: 20202021
+  discriminator: 3840
+  vendorId: 65521
+  productId: 32768
+  vendorName: "matter.js"
+  productName: "Diverse Composed Device"
+  nodeLabel: "Diverse Composed Device"
+
+defaults:
+  sensorIntervalSeconds: 5
+
+endpoints:
+  - id: "light-1"
+    profile: "onoff-light"
+
+  - id: "socket-1"
+    profile: "onoff-socket"
+
+  - id: "dimmer-1"
+    profile: "dimmable-light"
+
+  - id: "ct-1"
+    profile: "ct-light"
+
+  - id: "rgb-1"
+    profile: "extended-light"
+
+  - id: "temp-1"
+    profile: "temp-sensor"
+    intervalSeconds: 4
+    temperatureSequence: [2050, 2150, 2250, 2350]
+
+  - id: "humidity-1"
+    profile: "humidity-sensor"
+    intervalSeconds: 6
+    humiditySequence: [4200, 4600, 5100, 5700]

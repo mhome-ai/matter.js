@@ -11,7 +11,8 @@
     },
     "main": "src/ComposedDeviceNode.ts",
     "dependencies": {
-        "@matter/main": "*"
+        "@matter/main": "*",
+        "yaml": "^2.8.2"
     },
     "engines": {
         "node": ">=20.19.0 <22.0.0 || >=22.13.0"

@@ -50,6 +50,7 @@
         "build-clean": "node packages/tools/bin/build.js --clean",
         "build-doc": "node packages/tools/bin/build.js docs",
         "device-air-quality-sensor": "matter-run examples/device-air-quality-sensor/src/AirQualitySensorDeviceNode.ts",
+        "device-composed-diverse": "matter-run examples/abc/src/DiverseComposedDeviceNode.ts",
         "device-composed-wc-light": "matter-run examples/device-composed-wc-light/src/IlluminatedRollerShade.ts",
         "device-measuring-socket": "matter-run examples/device-measuring-socket/src/MeasuredSocketDevice.ts",
         "device-multiple-onoff": "matter-run examples/device-multiple-onoff/src/MultiDeviceNode.ts",
